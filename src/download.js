@@ -1,11 +1,13 @@
 export function filename(symbologyId, text, ext) {
+  // Case is preserved: the payload is often a SKU or a code where the capitals
+  // carry meaning, and every platform Barcoder targets has a case-aware
+  // filesystem for the name it is handed.
   const slug = String(text)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^A-Za-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 32)
     .replace(/-+$/, '');
-  return slug ? `${symbologyId}-${slug}.${ext}` : `${symbologyId}.${ext}`;
+  return slug ? `${slug}-${symbologyId}.${ext}` : `${symbologyId}.${ext}`;
 }
 
 export function downloadBlob(blob, name) {

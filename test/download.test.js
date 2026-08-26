@@ -3,16 +3,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { filename, downloadBlob } from '../src/download.js';
 
 describe('filename', () => {
-  it('slugifies the text', () => {
-    expect(filename('code128', 'ABC-123', 'png')).toBe('code128-abc-123.png');
+  it('keeps the case the user typed', () => {
+    expect(filename('qrcode', 'HelloWorld', 'svg')).toBe('HelloWorld-qrcode.svg');
+    expect(filename('qrcode', 'SKU AB12', 'png')).toBe('SKU-AB12-qrcode.png');
+  });
+
+  it('still folds everything that is not a letter or digit into single dashes', () => {
+    expect(filename('qrcode', 'Aa  !!  Bb', 'svg')).toBe('Aa-Bb-qrcode.svg');
+  });
+
+  it('puts the code before the symbology', () => {
+    expect(filename('code128', 'ABC-123', 'png')).toBe('ABC-123-code128.png');
   });
 
   it('collapses runs of non-alphanumerics to a single dash', () => {
-    expect(filename('qrcode', 'a  !!  b', 'svg')).toBe('qrcode-a-b.svg');
+    expect(filename('qrcode', 'a  !!  b', 'svg')).toBe('a-b-qrcode.svg');
   });
 
   it('trims leading and trailing dashes', () => {
-    expect(filename('qrcode', '!!hello!!', 'pdf')).toBe('qrcode-hello.pdf');
+    expect(filename('qrcode', '!!hello!!', 'pdf')).toBe('hello-qrcode.pdf');
   });
 
   it('falls back to the symbology alone when nothing survives', () => {
@@ -22,9 +31,9 @@ describe('filename', () => {
 
   it('truncates the slug to 32 characters with no trailing dash', () => {
     const name = filename('qrcode', 'a'.repeat(60), 'xml');
-    expect(name).toBe(`qrcode-${'a'.repeat(32)}.xml`);
+    expect(name).toBe(`${'a'.repeat(32)}-qrcode.xml`);
     const dashy = filename('qrcode', `${'a'.repeat(32)} tail`, 'xml');
-    expect(dashy.endsWith('-.xml')).toBe(false);
+    expect(dashy).toBe(`${'a'.repeat(32)}-qrcode.xml`);
   });
 });
 

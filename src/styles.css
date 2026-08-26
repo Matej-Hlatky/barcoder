@@ -1,41 +1,50 @@
 :root {
   color-scheme: light;
-  --bg: #ffffff;
-  --surface: #f4f4f5;
-  --text: #18181b;
-  --muted: #71717a;
-  --border: #e4e4e7;
-  --control-border: #84848d;
-  --caret: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%2371717a%22%3E%3Cpath%20d%3D%22M213.66%2C101.66l-80%2C80a8%2C8%2C0%2C0%2C1-11.32%2C0l-80-80A8%2C8%2C0%2C0%2C1%2C53.66%2C90.34L128%2C164.69l74.34-74.35a8%2C8%2C0%2C0%2C1%2C11.32%2C11.32Z%22%2F%3E%3C%2Fsvg%3E");
-  --accent: #2563eb;
-  --danger: #dc2626;
+  --bg: #f4f4f2;
+  --surface: #ffffff;
+  --text: #1b1b1a;
+  --muted: #6e6e69;
+  --border: #e2e2df;
+  --control-border: #8a8a84;
+  --caret: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%236e6e69%22%3E%3Cpath%20d%3D%22M213.66%2C101.66l-80%2C80a8%2C8%2C0%2C0%2C1-11.32%2C0l-80-80A8%2C8%2C0%2C0%2C1%2C53.66%2C90.34L128%2C164.69l74.34-74.35a8%2C8%2C0%2C0%2C1%2C11.32%2C11.32Z%22%2F%3E%3C%2Fsvg%3E");
+  --accent: #8ec9a4;
+  --accent-ink: #10241a;
+  /* The pastel accent is only 1.7:1 against the page, so outlines and active
+     borders use this deeper sage instead — a focus ring needs 3:1. */
+  --focus: #3f7d58;
+  --danger: #c62f2f;
+  --radius: 4px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #0f0f10;
-    --surface: #1c1c1f;
-    --text: #fafafa;
-    --muted: #a1a1aa;
-    --border: #2e2e33;
-    --control-border: #71717a;
-    --caret: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23a1a1aa%22%3E%3Cpath%20d%3D%22M213.66%2C101.66l-80%2C80a8%2C8%2C0%2C0%2C1-11.32%2C0l-80-80A8%2C8%2C0%2C0%2C1%2C53.66%2C90.34L128%2C164.69l74.34-74.35a8%2C8%2C0%2C0%2C1%2C11.32%2C11.32Z%22%2F%3E%3C%2Fsvg%3E");
-    --accent: #60a5fa;
+    --bg: #131316;
+    --surface: #202024;
+    --text: #ededee;
+    --muted: #9c9ca4;
+    --border: #303036;
+    --control-border: #6e6e78;
+    --caret: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%239c9ca4%22%3E%3Cpath%20d%3D%22M213.66%2C101.66l-80%2C80a8%2C8%2C0%2C0%2C1-11.32%2C0l-80-80A8%2C8%2C0%2C0%2C1%2C53.66%2C90.34L128%2C164.69l74.34-74.35a8%2C8%2C0%2C0%2C1%2C11.32%2C11.32Z%22%2F%3E%3C%2Fsvg%3E");
+    --accent: #9fd4b0;
+    --accent-ink: #0d2016;
+    --focus: #9fd4b0;
     --danger: #f87171;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0f0f10;
-  --surface: #1c1c1f;
-  --text: #fafafa;
-  --muted: #a1a1aa;
-  --border: #2e2e33;
-  --control-border: #71717a;
-  --caret: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23a1a1aa%22%3E%3Cpath%20d%3D%22M213.66%2C101.66l-80%2C80a8%2C8%2C0%2C0%2C1-11.32%2C0l-80-80A8%2C8%2C0%2C0%2C1%2C53.66%2C90.34L128%2C164.69l74.34-74.35a8%2C8%2C0%2C0%2C1%2C11.32%2C11.32Z%22%2F%3E%3C%2Fsvg%3E");
-  --accent: #60a5fa;
+  --bg: #131316;
+  --surface: #202024;
+  --text: #ededee;
+  --muted: #9c9ca4;
+  --border: #303036;
+  --control-border: #6e6e78;
+  --caret: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%239c9ca4%22%3E%3Cpath%20d%3D%22M213.66%2C101.66l-80%2C80a8%2C8%2C0%2C0%2C1-11.32%2C0l-80-80A8%2C8%2C0%2C0%2C1%2C53.66%2C90.34L128%2C164.69l74.34-74.35a8%2C8%2C0%2C0%2C1%2C11.32%2C11.32Z%22%2F%3E%3C%2Fsvg%3E");
+  --accent: #9fd4b0;
+  --accent-ink: #0d2016;
+  --focus: #9fd4b0;
   --danger: #f87171;
 }
 
@@ -54,6 +63,29 @@ body {
   line-height: 1.5;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Gated on no-preference rather than undone in a reduce block, so a new animated
+   property can never escape the opt-out by being added in the wrong place. */
+@media (prefers-reduced-motion: no-preference) {
+  body, button, select, input, .options, .theme .icon {
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+  }
+  .options::details-content {
+    transition: grid-template-rows 0.3s ease, content-visibility 0.3s allow-discrete;
+  }
+  .options summary .icon { transition: transform 0.3s ease, color 0.5s ease; }
+  /* Focus feedback stays quick even though the theme cross-fade is slow. Inside
+     the opt-out with everything else: a transition declared next to the focus
+     colours themselves would outlive `reduce`. */
+  button:focus-visible, select:focus-visible, input:focus-visible {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .theme .thumb {
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 0.5s ease,
+                border-color 0.5s ease;
+  }
 }
 
 #app {
@@ -76,6 +108,9 @@ body {
   border-radius: 999px;
   flex: none;
 }
+/* The thumb and the icons are positioned against the padding box, which a
+   thicker border would move. Hold --bw and draw the focus ring inside instead. */
+.theme:focus-visible { --bw: 1px; box-shadow: inset 0 0 0 2px var(--focus); }
 .theme .icon {
   position: absolute;
   top: 13px;
@@ -96,21 +131,20 @@ body {
   border-radius: 999px;
   background: var(--bg);
   border: 1px solid var(--control-border);
-  transition: transform 0.18s ease;
 }
 .theme[aria-checked='true'] .thumb { transform: translateX(38px); }
-@media (prefers-reduced-motion: reduce) {
-  .theme .thumb { transition: none; }
-}
 
 button, select, input {
+  /* Focus thickens the border to 2px. Padding is derived from --bw so that
+     growth comes out of the inner padding and no text shifts. */
+  --bw: 1px;
   font: inherit;
   color: inherit;
   min-height: 48px;
-  border-radius: 8px;
-  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  border: var(--bw) solid var(--control-border);
   background: var(--surface);
-  padding: 0 16px;
+  padding: 0 calc(17px - var(--bw));
 }
 
 select {
@@ -118,9 +152,9 @@ select {
   -webkit-appearance: none;
   background-image: var(--caret);
   background-repeat: no-repeat;
-  background-position: right 14px center;
+  background-position: right calc(15px - var(--bw)) center;
   background-size: 20px 20px;
-  padding-right: 44px;
+  padding-right: calc(45px - var(--bw));
 }
 
 input {
@@ -130,7 +164,11 @@ input {
 
 button { cursor: pointer; }
 button:focus-visible, select:focus-visible, input:focus-visible {
-  outline: 2px solid var(--accent);
+  --bw: 2px;
+  border-color: var(--focus);
+  /* Transparent rather than none: forced-colors mode repaints it, so the focus
+     ring survives where our border colour is overridden away. */
+  outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
@@ -139,21 +177,36 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   flex: 1;
   border-radius: 0;
   border-left-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
-.group button:first-child { border-radius: 8px 0 0 8px; border-left-width: 1px; }
-.group button:last-child { border-radius: 0 8px 8px 0; }
+.group button .icon { width: 22px; height: 22px; flex: none; }
+.group button:first-child { border-radius: var(--radius) 0 0 var(--radius); border-left-width: var(--bw); }
+.group button:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+/* The shared divider means this button has no left border to thicken, so the
+   focus edge is drawn inside it instead of shifting the divider. */
+.group button:not(:first-child):focus-visible { box-shadow: inset 2px 0 0 var(--focus); }
 .group button[aria-pressed='true'] {
   background: var(--accent);
-  border-color: var(--accent);
-  color: #ffffff;
+  border-color: var(--focus);
+  color: var(--accent-ink);
 }
+/* --focus and --accent are the same colour in dark, so the edge of a pressed
+   button has to come from the ink instead or it vanishes into its own fill. */
+.group button[aria-pressed='true']:focus-visible { border-color: var(--accent-ink); }
+.group button[aria-pressed='true']:not(:first-child):focus-visible { box-shadow: inset 2px 0 0 var(--accent-ink); }
 
 .text-input {
   width: 100%;
   font-size: 20px;
-  padding: 12px 16px;
-  font-variant-numeric: slashed-zero tabular-nums;
-  font-feature-settings: "zero" 1, "tnum" 1;
+  padding: calc(13px - var(--bw)) calc(17px - var(--bw));
+  /* Menlo leads because it is the only one of these that slashes its zero by
+     default; ui-monospace resolves to SF Mono, which does not. Neither SF Pro
+     nor Helvetica Neue carries a `zero` feature, so a text face cannot do it. */
+  font-family: Menlo, Consolas, "DejaVu Sans Mono", ui-monospace, monospace;
+  font-variant-numeric: slashed-zero;
 }
 
 .preview {
@@ -177,16 +230,101 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 .error:empty { min-height: 0; }
 
 .downloads { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 12px; }
-.downloads button { padding: 0 8px; }
+.downloads button { padding: 0 calc(9px - var(--bw)); }
 .downloads button[disabled] { opacity: 0.4; cursor: not-allowed; }
 
 .options { border: 1px solid var(--border); border-radius: 8px; padding: 0 16px; }
-.options summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; }
+.options summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+}
+.options summary::-webkit-details-marker { display: none; }
+.options summary .icon { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.options[open] summary .icon { transform: rotate(180deg); }
+
+/* interpolate-size is Chrome-only, so height:auto cannot be interpolated. A
+   single-row grid collapsing from 1fr to 0fr animates in both engines. */
+.options::details-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  content-visibility: hidden;
+}
+.options[open]::details-content { grid-template-rows: 1fr; content-visibility: visible; }
+.options .fields { min-height: 0; overflow: hidden; }
 .options .field { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; min-height: 48px; }
-.options .field label { flex: 1; }
+.options .field .field-label { flex: 1; display: flex; align-items: center; }
+
+/* 18px of visible ink inside a 48px tap target: the negative margins let the
+   button meet the touch minimum without stretching the row. */
+.info {
+  width: 48px;
+  height: 48px;
+  min-height: 0;
+  margin: -14px -14px -14px -4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.info::before {
+  content: 'i';
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+.info:hover { color: var(--text); }
+.info:focus-visible { color: var(--focus); outline: 2px solid var(--focus); outline-offset: -13px; border-radius: 999px; }
+
+.tip {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(280px, calc(100vw - 16px));
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.45;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.22);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tip {
+    opacity: 0;
+    /* `overlay` keeps it in the top layer for the whole fade-out; without it the
+       popover leaves the layer the moment it closes and paints as an ordinary
+       fixed element. Engines that lack the property ignore it in the list. */
+    transition: opacity 0.15s ease, display 0.15s allow-discrete, overlay 0.15s allow-discrete;
+  }
+  .tip:popover-open { opacity: 1; }
+  /* Without a starting state there is nothing to fade from: a popover enters
+     at full opacity and the transition above never runs on the way in. */
+  @starting-style { .tip:popover-open { opacity: 0; } }
+}
 .options .field input[type='number'], .options .field select { max-width: 160px; }
-.options .field input[type='number'] { text-align: right; }
-.options .field input[type='checkbox'] { width: 28px; height: 28px; min-height: 0; }
+.options .field input[type='number'] { text-align: right; appearance: textfield; }
+.options .field input[type='number']::-webkit-outer-spin-button,
+.options .field input[type='number']::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.options .field input[type='checkbox'] { width: 28px; height: 28px; min-height: 0; accent-color: var(--focus); cursor: pointer; }
+/* appearance stays native here, and a native control ignores an author border,
+   so this is the one place focus has to be painted as a real outline. */
+.options .field input[type='checkbox']:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 
 dialog.display {
   border: 0;
@@ -215,4 +353,8 @@ dialog.display .close {
   background: #ffffff;
   color: #18181b;
   border-color: #84848d;
+  border-radius: var(--radius);
 }
+/* The dialog is light whatever the theme, so it carries the light --focus value
+   literally; without this its own border-color outranks the focus rule. */
+dialog.display .close:focus-visible { border-color: #3f7d58; }

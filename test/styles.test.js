@@ -49,6 +49,28 @@ describe('control border contrast', () => {
   }
 });
 
+describe('accent tokens', () => {
+  for (const [name, selector] of [['light', LIGHT], ['dark', DARK_MEDIA], ['dark attr', DARK_ATTR]]) {
+    it(`keeps --focus usable as a focus indicator in ${name}`, () => {
+      const t = tokensOf(selector);
+      // WCAG 2.2 asks 3:1 of a focus indicator against what surrounds it.
+      expect(contrast(t['--focus'], t['--bg'])).toBeGreaterThanOrEqual(3);
+      expect(contrast(t['--focus'], t['--surface'])).toBeGreaterThanOrEqual(3);
+    });
+
+    it(`keeps --accent-ink readable on the --accent fill in ${name}`, () => {
+      const t = tokensOf(selector);
+      expect(contrast(t['--accent-ink'], t['--accent'])).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
+  it('does not let the pastel fill masquerade as an indicator colour', () => {
+    // The reason there are two tokens: --accent alone cannot clear 3:1, so any
+    // outline or active border must reach for --focus instead.
+    expect(contrast(tokensOf(LIGHT)['--accent'], tokensOf(LIGHT)['--bg'])).toBeLessThan(3);
+  });
+});
+
 describe('layout stability', () => {
   it('reserves the scrollbar gutter', () => {
     expect(css).toMatch(/html\s*\{[^}]*scrollbar-gutter:\s*stable/);

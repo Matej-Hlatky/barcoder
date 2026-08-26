@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderShell, renderSymbologyOptions, syncControls, syncTheme, showPreview, showError, showEmpty } from '../src/ui.js';
 import { defaultState, setSymbology } from '../src/state.js';
 
@@ -38,6 +38,22 @@ describe('renderShell', () => {
 
   it('starts with the options accordion collapsed', () => {
     expect(refs.options.open).toBe(false);
+  });
+
+  it('puts a barcode and a qr icon before the group labels', () => {
+    const [linear, twoD] = refs.groupButtons;
+    expect(linear.querySelector('svg.barcode')).toBeTruthy();
+    expect(twoD.querySelector('svg.qr')).toBeTruthy();
+    expect(linear.textContent).toBe('Linear');
+    expect(twoD.textContent).toBe('2D');
+    // Icon first, label second.
+    expect(linear.firstElementChild.tagName.toLowerCase()).toBe('svg');
+  });
+
+  it('hides the group icons from assistive technology, leaving the label to name the button', () => {
+    for (const button of refs.groupButtons) {
+      expect(button.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+    }
   });
 
   it('renders the theme control as a two-icon switch', () => {
@@ -82,6 +98,24 @@ describe('syncControls', () => {
     syncControls(refs, setSymbology(defaultState(), 'code128'));
     expect([...refs.select.options].map((o) => o.value)).toContain('code128');
     expect([...refs.select.options].map((o) => o.value)).not.toContain('qrcode');
+  });
+});
+
+describe('options accordion', () => {
+  it('puts a caret at the far end of the summary', () => {
+    const summary = refs.options.querySelector('summary');
+    expect(summary.textContent).toBe('Options');
+    expect(summary.querySelector('svg.caret')).toBeTruthy();
+    expect(summary.lastElementChild.tagName.toLowerCase()).toBe('svg');
+    expect(summary.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('holds the fields in one wrapper, which is what the open/close animation collapses', () => {
+    renderSymbologyOptions(refs.options, defaultState());
+    const fields = refs.options.querySelector('.fields');
+    expect(fields).toBeTruthy();
+    expect(fields.querySelectorAll('.field').length).toBeGreaterThan(0);
+    expect([...refs.options.children].map((c) => c.tagName.toLowerCase())).toEqual(['summary', 'div']);
   });
 });
 
@@ -185,5 +219,69 @@ describe('syncTheme', () => {
     expect(refs.themeButton.getAttribute('aria-checked')).toBe('true');
     syncTheme(refs, 'light');
     expect(refs.themeButton.getAttribute('aria-checked')).toBe('false');
+  });
+});
+
+describe('option help without popover support', () => {
+  beforeEach(() => renderSymbologyOptions(refs.options, setSymbology(defaultState(), 'pdf417')));
+
+  it('leaves no tip in the document, since only the UA rule would hide it', () => {
+    expect(refs.options.querySelectorAll('.tip').length).toBe(0);
+  });
+
+  it('falls back to a title on the info button and claims no popover wiring', () => {
+    for (const button of refs.options.querySelectorAll('button.info')) {
+      expect(button.title.length).toBeGreaterThan(20);
+      expect(button.hasAttribute('popovertarget')).toBe(false);
+    }
+  });
+
+  it('does not point a control at an explanation that is not there', () => {
+    for (const control of refs.options.querySelectorAll('.field input, .field select')) {
+      expect(control.hasAttribute('aria-describedby')).toBe(false);
+    }
+  });
+});
+
+describe('option help', () => {
+  // jsdom has no popover support, so stand it up for the supported branch.
+  beforeEach(() => {
+    Object.defineProperty(HTMLElement.prototype, 'popover', { value: null, configurable: true, writable: true });
+    renderSymbologyOptions(refs.options, setSymbology(defaultState(), 'pdf417'));
+  });
+  afterEach(() => { delete HTMLElement.prototype.popover; });
+
+  it('gives every field an info button wired to a popover', () => {
+    const fields = [...refs.options.querySelectorAll('.field')];
+    expect(fields.length).toBeGreaterThan(2);
+    for (const field of fields) {
+      const button = field.querySelector('button.info');
+      const tip = field.querySelector('.tip');
+      expect(button).toBeTruthy();
+      expect(tip).toBeTruthy();
+      expect(button.getAttribute('popovertarget')).toBe(tip.id);
+      expect(tip.textContent.length).toBeGreaterThan(20);
+    }
+  });
+
+  it('labels the info button by its option so it is not a bare "i" to a screen reader', () => {
+    const field = refs.options.querySelector('.field');
+    const label = field.querySelector('label').textContent;
+    expect(field.querySelector('button.info').getAttribute('aria-label')).toContain(label);
+  });
+
+  it('points the control at its explanation with aria-describedby', () => {
+    const field = refs.options.querySelector('.field');
+    const control = field.querySelector('input, select');
+    expect(control.getAttribute('aria-describedby')).toBe(field.querySelector('.tip').id);
+  });
+
+  it('is reachable by keyboard, named, and inert as a form control', () => {
+    const button = refs.options.querySelector('button.info');
+    // Deliberately a tab stop: tapping is not the only way to reach an
+    // explanation, and nothing else exposes the text to a keyboard user.
+    expect(button.tabIndex).toBe(0);
+    expect(button.getAttribute('aria-label')).toMatch(/^About /);
+    expect(button.type).toBe('button');
   });
 });

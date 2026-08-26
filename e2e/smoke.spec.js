@@ -42,7 +42,7 @@ test('downloads every offered format with real bytes', async ({ page }) => {
       page.waitForEvent('download'),
       button.click(),
     ]);
-    expect(download.suggestedFilename(), format).toMatch(/^qrcode-hello\.\w+$/);
+    expect(download.suggestedFilename(), format).toMatch(/^hello-qrcode\.\w+$/);
     const stream = await download.createReadStream();
     const chunks = [];
     for await (const chunk of stream) chunks.push(chunk);
@@ -266,4 +266,287 @@ test('makes the interface unselectable but leaves text inputs selectable', async
   expect(styles.heading).toBe('none');
   expect(styles.button).toBe('none');
   expect(styles.input).toBe('text');
+});
+
+test('opens an option explanation on tap and dismisses it by tapping away', async ({ page }) => {
+  await page.locator('details.options summary').click();
+  const info = page.locator('.field', { hasText: 'Margin' }).locator('button.info');
+
+  // The panel animates open, so poll rather than measure the first frame.
+  await expect
+    .poll(async () => (await info.boundingBox())?.height ?? 0)
+    .toBeGreaterThanOrEqual(48);
+  expect((await info.boundingBox()).width).toBeGreaterThanOrEqual(48);
+
+  await info.click();
+  const tip = page.locator('.tip:popover-open');
+  await expect(tip).toHaveCount(1);
+  await expect(tip).toContainText('quiet zone');
+
+  // Placed against its own row rather than left in the viewport centre, and
+  // never hanging off the edge of a phone screen. Measured inside the page:
+  // Playwright's boundingBox intermittently reports 0,0 for a top-layer popover.
+  const geom = await page.evaluate(() => {
+    const tip = document.querySelector('.tip:popover-open').getBoundingClientRect();
+    const btn = document.querySelector('.tip:popover-open').parentElement
+      .querySelector('button.info').getBoundingClientRect();
+    return { tip, btn, width: window.innerWidth };
+  });
+  expect(geom.tip.x).toBeGreaterThanOrEqual(0);
+  expect(geom.tip.x + geom.tip.width).toBeLessThanOrEqual(geom.width);
+  expect(Math.abs((geom.tip.y + geom.tip.height / 2) - (geom.btn.y + geom.btn.height / 2)))
+    .toBeLessThan(200);
+
+  await page.mouse.click(10, 10);
+  await expect(page.locator('.tip:popover-open')).toHaveCount(0);
+});
+
+test('dismisses an option explanation on scroll instead of letting it drift', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 500 });
+  await page.locator('details.options summary').click();
+  const info = page.locator('.field', { hasText: 'Margin' }).locator('button.info');
+  await expect.poll(async () => (await info.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(48);
+
+  await info.click();
+  await expect(page.locator('.tip:popover-open')).toHaveCount(1);
+
+  await page.mouse.wheel(0, 150);
+  await expect(page.locator('.tip:popover-open')).toHaveCount(0);
+});
+
+const opaque = (color) => !/rgba\(.*,\s*0\)$/.test(color) && color !== 'transparent';
+
+test('gives a focused checkbox a focus ring, which its native appearance would otherwise swallow', async ({ page }) => {
+  await page.goto('/?s=code128&t=HELLO');
+  await page.locator('details.options summary').click();
+  const box = page.locator(".options input[type='checkbox']").first();
+  await expect.poll(async () => (await box.boundingBox())?.height ?? 0).toBeGreaterThan(0);
+
+  for (let i = 0; i < 30 && !(await box.evaluate((e) => e === document.activeElement)); i += 1) {
+    await page.keyboard.press('Tab');
+  }
+  const style = await box.evaluate((e) => {
+    const cs = getComputedStyle(e);
+    return { focusVisible: e.matches(':focus-visible'), outline: cs.outlineColor, width: cs.outlineWidth };
+  });
+  expect(style.focusVisible).toBe(true);
+  expect(opaque(style.outline), `outline was ${style.outline}`).toBe(true);
+  expect(parseFloat(style.width)).toBeGreaterThanOrEqual(2);
+});
+
+test('marks the focused pressed group button with the ink colour, not its own fill', async ({ page }) => {
+  // Set the attribute directly: the app resolves its theme at load, so
+  // emulateMedia afterwards changes nothing.
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  // Border colours cross-fade over 0.5s; measuring early reads the light value.
+  await page.waitForTimeout(700);
+  await page.keyboard.press('Tab');   // theme switch
+  await page.keyboard.press('Tab');   // Linear
+  await page.keyboard.press('Tab');   // 2D, pressed by default since QR is the default code
+  await page.waitForTimeout(250);     // the focus edge fades in over 0.15s
+  const seen = await page.evaluate(() => {
+    const el = document.activeElement;
+    const cs = getComputedStyle(el);
+    return {
+      label: el.textContent,
+      pressed: el.getAttribute('aria-pressed'),
+      focusVisible: el.matches(':focus-visible'),
+      border: cs.borderTopColor,
+      shadow: cs.boxShadow,
+      fill: cs.backgroundColor,
+    };
+  });
+  expect(seen.label).toBe('2D');
+  expect(seen.pressed).toBe('true');
+  expect(seen.focusVisible).toBe(true);
+  // --focus and --accent are the same colour here, so the edge must not be either.
+  expect(seen.border).not.toBe(seen.fill);
+  expect(seen.shadow).not.toContain(seen.fill.replace(/\s/g, ''));
+});
+
+test('keeps a focus ring on the fullscreen close button', async ({ page }) => {
+  await page.fill('.text-input', 'HELLO');
+  await page.locator('.preview').click();
+  const close = page.locator('dialog.display .close');
+  await expect(close).toBeVisible();
+
+  // The dialog autofocuses this button, so there is no unfocused state to
+  // compare against: check the colour itself. Its own border-color declaration
+  // outranks the shared focus rule, which is what silently removed the ring.
+  for (let i = 0; i < 10 && !(await close.evaluate((e) => e.matches(':focus-visible'))); i += 1) {
+    await page.keyboard.press('Tab');
+  }
+  await page.waitForTimeout(250);
+  const focused = await close.evaluate((e) => ({
+    visible: e.matches(':focus-visible'),
+    border: getComputedStyle(e).borderTopColor,
+    width: getComputedStyle(e).borderTopWidth,
+  }));
+  expect(focused.visible).toBe(true);
+  expect(focused.border).toBe('rgb(63, 125, 88)');     // --focus, light value
+  expect(focused.border).not.toBe('rgb(132, 132, 141)'); // the resting #84848d
+  expect(parseFloat(focused.width)).toBe(2);
+});
+
+test('closes an open explanation when the options are re-rendered under it', async ({ page }) => {
+  // Count the window scroll listeners, which is the leak the fix prevents.
+  await page.addInitScript(() => {
+    window.__scrollListeners = 0;
+    const { addEventListener: add, removeEventListener: remove } = EventTarget.prototype;
+    EventTarget.prototype.addEventListener = function (type, ...rest) {
+      if (this === window && type === 'scroll') window.__scrollListeners += 1;
+      return add.call(this, type, ...rest);
+    };
+    EventTarget.prototype.removeEventListener = function (type, ...rest) {
+      if (this === window && type === 'scroll') window.__scrollListeners -= 1;
+      return remove.call(this, type, ...rest);
+    };
+  });
+  await page.goto('/');
+
+  const baseline = await page.evaluate(() => window.__scrollListeners);
+  await page.locator('details.options summary').click();
+  await expect
+    .poll(async () => (await page.locator('.fields').boundingBox())?.height ?? 0)
+    .toBeGreaterThan(100);
+  await page.waitForTimeout(400);
+
+  // Shown directly rather than by clicking: a click scrolls, and a scroll
+  // dismisses the tip, which would tidy the listener without the fix.
+  await page.evaluate(() => document.querySelectorAll('.tip')[1].showPopover());
+  await page.waitForTimeout(100);   // the scroll listener is armed a frame late
+  expect(await page.evaluate(() => window.__scrollListeners)).toBe(baseline + 1);
+
+  // Re-rendering drops the row. Removing a showing popover from the document
+  // hides it without firing beforetoggle, so its listeners would never come off.
+  await page.evaluate(() => {
+    const select = document.querySelector('select.symbology');
+    select.value = 'datamatrix';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect(page.locator('.tip:popover-open')).toHaveCount(0);
+  expect(await page.evaluate(() => window.__scrollListeners)).toBe(baseline);
+});
+
+test('draws a focus edge on the group button that has no left border of its own', async ({ page }) => {
+  await page.keyboard.press('Tab');   // theme switch
+  await page.keyboard.press('Tab');   // Linear
+  await page.keyboard.press('Tab');   // 2D
+  await page.waitForTimeout(250);
+  const focused = await page.evaluate(() => {
+    const el = document.activeElement;
+    const cs = getComputedStyle(el);
+    return {
+      label: el.textContent,
+      first: el === el.parentElement.firstElementChild,
+      borderLeft: cs.borderLeftWidth,
+      boxShadow: cs.boxShadow,
+      focusVisible: el.matches(':focus-visible'),
+    };
+  });
+  expect(focused.label).toBe('2D');
+  expect(focused.focusVisible).toBe(true);
+  expect(focused.first).toBe(false);
+  expect(focused.borderLeft).toBe('0px');          // the shared divider
+  expect(focused.boxShadow).toContain('inset');    // ...so the edge is drawn inside
+});
+
+test('does not move the theme switch or the select caret when they take focus', async ({ page }) => {
+  const thumb = page.locator('.theme .thumb');
+  const before = await thumb.boundingBox();
+  const caretBefore = await page.locator('select.symbology').evaluate((e) => {
+    const r = e.getBoundingClientRect();
+    return r.right - parseFloat(getComputedStyle(e).borderRightWidth);
+  });
+
+  await page.keyboard.press('Tab');
+  await expect.poll(() => page.evaluate(() => document.activeElement.className)).toContain('theme');
+  await page.waitForTimeout(250);
+  const after = await thumb.boundingBox();
+  expect(after.x).toBe(before.x);
+  expect(after.y).toBe(before.y);
+
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');   // the symbology select
+  await page.waitForTimeout(250);
+  const focusedCaret = await page.locator('select.symbology').evaluate((e) => {
+    const cs = getComputedStyle(e);
+    const r = e.getBoundingClientRect();
+    return {
+      isSelect: e.tagName,
+      edge: r.right - parseFloat(cs.borderRightWidth),
+      position: cs.backgroundPosition,
+    };
+  });
+  expect(focusedCaret.isSelect).toBe('SELECT');
+  // The caret is placed from the padding edge, which moves inward as the border
+  // grows -- the offset has to shrink by the same pixel.
+  expect(focusedCaret.edge).toBeCloseTo(caretBefore - 1, 1);
+  expect(focusedCaret.position).toBe('calc(100% - 13px) 50%');
+});
+
+test('honours reduced motion for focus feedback, not just theme changes', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  const focused = await page.evaluate(() => ({
+    tag: document.activeElement.tagName,
+    transition: getComputedStyle(document.activeElement).transition,
+  }));
+  expect(focused.tag).toBe('BUTTON');
+  expect(focused.transition).not.toContain('0.15s');
+  expect(focused.transition).not.toContain('border-color');
+});
+
+test('closes an open explanation when the panel is collapsed', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__scrollListeners = 0;
+    const { addEventListener: add, removeEventListener: remove } = EventTarget.prototype;
+    EventTarget.prototype.addEventListener = function (type, ...rest) {
+      if (this === window && type === 'scroll') window.__scrollListeners += 1;
+      return add.call(this, type, ...rest);
+    };
+    EventTarget.prototype.removeEventListener = function (type, ...rest) {
+      if (this === window && type === 'scroll') window.__scrollListeners -= 1;
+      return remove.call(this, type, ...rest);
+    };
+  });
+  await page.goto('/');
+  const baseline = await page.evaluate(() => window.__scrollListeners);
+
+  await page.locator('details.options summary').click();
+  await expect
+    .poll(async () => (await page.locator('.fields').boundingBox())?.height ?? 0)
+    .toBeGreaterThan(100);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => document.querySelectorAll('.tip')[1].showPopover());
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => window.__scrollListeners)).toBe(baseline + 1);
+
+  // Collapsed without a pointer event outside the popover -- the keyboard path,
+  // which light-dismiss never sees.
+  await page.evaluate(() => { document.querySelector('details.options').open = false; });
+  await expect(page.locator('.tip:popover-open')).toHaveCount(0);
+  expect(await page.evaluate(() => window.__scrollListeners)).toBe(baseline);
+});
+
+test('slashes the zero in the payload field so 0 cannot be read as O', async ({ page }) => {
+  const metrics = await page.evaluate(() => {
+    const input = document.querySelector('.text-input');
+    const cs = getComputedStyle(input);
+    const width = (text) => {
+      const span = document.createElement('span');
+      span.style.cssText = `position:absolute;white-space:pre;font:${cs.font};font-family:${cs.fontFamily}`;
+      span.textContent = text;
+      document.body.append(span);
+      const w = span.getBoundingClientRect().width;
+      span.remove();
+      return w;
+    };
+    return { narrow: width('iiii'), wide: width('WWWW'), family: cs.fontFamily };
+  });
+  expect(metrics.narrow).toBeCloseTo(metrics.wide, 1);
+  expect(metrics.family.split(',')[0].trim()).toBe('Menlo');
 });

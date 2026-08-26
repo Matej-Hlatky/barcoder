@@ -84,3 +84,18 @@ describe('clamp', () => {
     expect(clamp({}, 7)).toBe(7);
   });
 });
+
+describe('option help text', () => {
+  const every = [...new Set(SYMBOLOGIES.flatMap((sym) => optionsOf(sym.id)))];
+
+  it('gives every option a non-empty explanation', () => {
+    for (const o of every) {
+      expect(typeof o.info, `${o.label} (${o.k}) has no info`).toBe('string');
+      expect(o.info.trim().length, `${o.label} (${o.k}) has an empty info`).toBeGreaterThan(20);
+    }
+  });
+
+  it('explains an option without merely repeating its label', () => {
+    for (const o of every) expect(o.info.trim().toLowerCase()).not.toBe(o.label.toLowerCase());
+  });
+});
