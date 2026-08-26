@@ -21,9 +21,20 @@ describe('build', () => {
     expect(html).toMatch(/<script type="module" src="\.\/assets\/main-[A-Z0-9]+\.js"><\/script>/);
   });
 
+  it('carries the page title through with its em dash intact', () => {
+    const html = readFileSync('dist/index.html', 'utf8');
+    expect(html).toContain('<title>Barcoder — Your mobile-first barcode generator</title>');
+  });
+
   it('uses no absolute asset paths', () => {
     const html = readFileSync('dist/index.html', 'utf8');
     expect(html).not.toMatch(/src="\//);
     expect(html).not.toMatch(/href="\//);
+  });
+
+  it('inlines a favicon that costs no extra request', () => {
+    const html = readFileSync('dist/index.html', 'utf8');
+    expect(html).toMatch(/<link rel="icon" href="data:image\/svg\+xml,/);
+    expect(html).toContain('prefers-color-scheme%3Adark');
   });
 });

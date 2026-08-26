@@ -367,3 +367,46 @@ recurring tax that outweighs the geometry-regression risk for ten symbologies.
 | Browsers without canvas WEBP encoding | Feature-detected; button hidden rather than producing a mislabeled PNG |
 | Hand-rolled PDF malformed on some symbology's path output | Structural unit tests plus the Playwright download check across all ten |
 | Wake Lock unsupported or rejected | Feature-detected, failure is silent; the white backdrop still works |
+
+## Amendments
+
+### 2026-08-25 — UX polish
+
+Implemented per `docs/superpowers/plans/2026-08-25-ux-polish.md`. Where these
+conflict with the sections above, these win.
+
+1. **Four download formats, not five.** WEBP is withdrawn: on a 360px viewport
+   five buttons wrapped and left PDF orphaned on its own row. The download row
+   is now a single-row grid (`grid-auto-flow: column`) for the four current
+   buttons; `1fr` tracks refuse to shrink below min-content, so the row
+   overflows rather than wraps below roughly 300px of viewport width (measured
+   250px of content against 225px available at 280px, the Galaxy Fold cover
+   screen) — the old `flex-wrap` degraded more gracefully there, and restoring
+   a fifth button would reintroduce the layout regression this task removed.
+   `webpSupported()` and `availableFormats()` are gone with it, since
+   neither had anything left to detect or filter. Restoring WEBP means restoring
+   all three: the `FORMATS` entry, the `toDataURL('image/webp')` probe in
+   `src/export/raster.js`, and the button-pruning pass in `src/main.js`.
+   `toBlob(svg, mime)` still takes a mime type, so the format entry itself is a
+   four-line change. The reference to "All five formats" in section 8's
+   Shared normalization paragraph should be read as "All four formats"
+   post-amendment.
+2. **The theme control is a switch, not a labelled button.** A 88×48 track with
+   Phosphor `sun` and `moon` glyphs and a sliding thumb, exposed as
+   `role="switch"` with `aria-checked` mirroring the applied theme. Still
+   `<button class="theme">` underneath.
+3. **Controls carry their own border token.** `--control-border` clears WCAG
+   1.4.11's 3:1 floor against both `--bg` and `--surface` in both themes
+   (`#84848d` light, `#71717a` dark); the softer `--border` stays on panel and
+   preview frames. `test/styles.test.js` enforces the ratio and the three-block
+   cascade rule.
+4. **Two additions the original spec did not cover:** an inlined barcode
+   favicon, and a `--caret` token that replaces the native select arrow with
+   Phosphor `caret-down` (a `data:` URI cannot inherit `currentColor`, so it is
+   defined once per theme block).
+5. **The interface does not select as text.** `user-select: none` on `body`,
+   with `input` opting back in. Buttons, labels, the heading and the select
+   controls no longer start a text selection on long-press or drag. The
+   deliberate cost: `.error` text and the barcode's human-readable line are no
+   longer selectable either, so the text input is the only place text can be
+   copied from.

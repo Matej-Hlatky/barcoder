@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { FORMATS } from '../src/export/index.js';
 
 describe('FORMATS', () => {
-  it('registers the five specified formats in order', () => {
-    expect(FORMATS.map((f) => f.id)).toEqual(['png', 'webp', 'svg', 'xml', 'pdf']);
+  it('registers the four offered formats in order', () => {
+    expect(FORMATS.map((f) => f.id)).toEqual(['png', 'svg', 'xml', 'pdf']);
   });
 
   it('gives every format a label, an extension, and a loader', () => {

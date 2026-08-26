@@ -1,9 +1,9 @@
 import { fromQuery, toQuery, setSymbology } from './state.js';
 import { optionsOf, clamp, GROUP_DEFAULTS } from './symbologies.js';
 import { initTheme, applyTheme, nextTheme } from './theme.js';
-import { renderShell, syncControls, renderSymbologyOptions, showPreview, showError, showEmpty } from './ui.js';
+import { renderShell, syncControls, syncTheme, renderSymbologyOptions, showPreview, showError, showEmpty } from './ui.js';
 import { createDisplayDialog } from './dialog.js';
-import { FORMATS, availableFormats } from './export/index.js';
+import { FORMATS } from './export/index.js';
 import { downloadBlob, filename } from './download.js';
 
 export function start(root) {
@@ -101,6 +101,7 @@ export function start(root) {
   refs.themeButton.addEventListener('click', () => {
     theme = nextTheme(theme);
     applyTheme(theme);
+    syncTheme(refs, theme);
   });
 
   refs.downloads.addEventListener('click', async (event) => {
@@ -112,23 +113,21 @@ export function start(root) {
       const toBlob = await format.load();
       downloadBlob(await toBlob(svg), filename(state.s, state.t, format.ext));
     } catch (error) {
+      // The message on screen stays plain; the cause goes to the console, since
+      // this catch spans three steps (chunk load, encode, download) and the
+      // failing one is otherwise unknowable from a bug report.
+      console.error(`${format.label} export failed`, error);
       refs.error.textContent = `Could not create the ${format.label} file`;
     } finally {
       button.disabled = false;
     }
   });
 
+  syncTheme(refs, theme);
   syncControls(refs, state);
   renderSymbologyOptions(refs.options, state);
   showEmpty(refs);
   regenerate();
-
-  availableFormats().then((formats) => {
-    const allowed = new Set(formats.map((f) => f.id));
-    for (const button of refs.downloads.querySelectorAll('[data-format]')) {
-      if (!allowed.has(button.dataset.format)) button.remove();
-    }
-  });
 
   return { refs, dialog, settled, getState: () => state };
 }

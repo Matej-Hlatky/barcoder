@@ -68,6 +68,16 @@ describe('start', () => {
     expect(app.refs.input.value).toBe('hello');
   });
 
+  it('renders the switch already checked when the OS prefers dark and nothing is stored', async () => {
+    localStorage.clear();
+    vi.stubGlobal('matchMedia', vi.fn(() => ({
+      matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    })));
+    const app = await start();
+    await app.settled();
+    expect(app.refs.themeButton.getAttribute('aria-checked')).toBe('true');
+  });
+
   it('opens the display dialog when the preview is tapped', async () => {
     window.history.replaceState({}, '', '/?t=hello');
     const app = await start();

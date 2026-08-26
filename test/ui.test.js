@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderShell, renderSymbologyOptions, syncControls, showPreview, showError, showEmpty } from '../src/ui.js';
+import { renderShell, renderSymbologyOptions, syncControls, syncTheme, showPreview, showError, showEmpty } from '../src/ui.js';
 import { defaultState, setSymbology } from '../src/state.js';
 
 const FORMATS = [
@@ -38,6 +38,21 @@ describe('renderShell', () => {
 
   it('starts with the options accordion collapsed', () => {
     expect(refs.options.open).toBe(false);
+  });
+
+  it('renders the theme control as a two-icon switch', () => {
+    expect(refs.themeButton.tagName).toBe('BUTTON');
+    expect(refs.themeButton.getAttribute('role')).toBe('switch');
+    expect(refs.themeButton.getAttribute('aria-checked')).toBe('false');
+    expect(refs.themeButton.querySelector('svg.sun')).toBeTruthy();
+    expect(refs.themeButton.querySelector('svg.moon')).toBeTruthy();
+    expect(refs.themeButton.querySelector('.thumb')).toBeTruthy();
+  });
+
+  it('hides the switch icons from assistive technology', () => {
+    for (const svg of refs.themeButton.querySelectorAll('svg')) {
+      expect(svg.getAttribute('aria-hidden')).toBe('true');
+    }
   });
 });
 
@@ -108,6 +123,20 @@ describe('renderSymbologyOptions', () => {
       expect(label.htmlFor).toBe(control.id);
     }
   });
+
+  it('offers a digits-only keypad and integer steps on number fields', () => {
+    renderSymbologyOptions(refs.options, defaultState());
+    const scale = refs.options.querySelector('[data-k="scale"]');
+    expect(scale.getAttribute('inputmode')).toBe('numeric');
+    expect(scale.getAttribute('step')).toBe('1');
+  });
+
+  it('bounds every number field at zero or above', () => {
+    renderSymbologyOptions(refs.options, defaultState());
+    for (const input of refs.options.querySelectorAll('input[type="number"]')) {
+      expect(Number(input.getAttribute('min'))).toBeGreaterThanOrEqual(0);
+    }
+  });
 });
 
 describe('preview states', () => {
@@ -147,5 +176,14 @@ describe('preview states', () => {
     expect(refs.preview.querySelector('.placeholder')).toBeTruthy();
     expect(refs.error.textContent).toBe('');
     expect([...refs.downloads.querySelectorAll('button')].every((b) => b.disabled)).toBe(true);
+  });
+});
+
+describe('syncTheme', () => {
+  it('checks the switch in dark mode and unchecks it in light', () => {
+    syncTheme(refs, 'dark');
+    expect(refs.themeButton.getAttribute('aria-checked')).toBe('true');
+    syncTheme(refs, 'light');
+    expect(refs.themeButton.getAttribute('aria-checked')).toBe('false');
   });
 });

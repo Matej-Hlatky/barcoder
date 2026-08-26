@@ -1,5 +1,6 @@
 import { SYMBOLOGIES, optionsOf } from './symbologies.js';
 import { groupOf } from './state.js';
+import { SUN, MOON } from './icons.js';
 
 const GROUPS = [
   { id: 'linear', label: 'Linear' },
@@ -19,10 +20,21 @@ function el(tag, props = {}, children = []) {
   return node;
 }
 
+// document.createElement cannot produce SVG elements — they need the correct
+// namespace, and the HTML parser is the cheapest way to get it.
+function parse(markup) {
+  const template = document.createElement('template');
+  template.innerHTML = markup;
+  return template.content.firstElementChild;
+}
+
 export function renderShell(root, formats) {
   root.textContent = '';
 
-  const themeButton = el('button', { class: 'theme', type: 'button', 'aria-label': 'Switch between light and dark theme', text: 'Theme' });
+  const themeButton = el('button', {
+    class: 'theme', type: 'button', role: 'switch', 'aria-checked': 'false',
+    'aria-label': 'Dark theme',
+  }, [parse(SUN), parse(MOON), el('span', { class: 'thumb' })]);
   const header = el('header', { class: 'header' }, [el('h1', { text: 'Barcoder' }), themeButton]);
 
   const groupButtons = GROUPS.map((g) =>
@@ -85,6 +97,7 @@ export function renderSymbologyOptions(container, state) {
     } else {
       control = el('input', {
         type: 'number', id, 'data-k': option.k,
+        inputmode: 'numeric', step: '1',
         ...(Number.isFinite(option.min) ? { min: String(option.min) } : {}),
         ...(Number.isFinite(option.max) ? { max: String(option.max) } : {}),
         placeholder: option.def === null ? 'Auto' : '',
@@ -122,4 +135,8 @@ export function showEmpty(refs) {
   refs.preview.classList.remove('is-stale');
   refs.error.textContent = '';
   setDownloadsEnabled(refs, false);
+}
+
+export function syncTheme(refs, theme) {
+  refs.themeButton.setAttribute('aria-checked', String(theme === 'dark'));
 }
