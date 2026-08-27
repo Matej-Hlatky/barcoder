@@ -50,3 +50,11 @@ so it works from a project subpath such as `/barcoder/`.
 
 - Spec: `docs/superpowers/specs/2026-08-25-barcoder-design.md`
 - Plan: `docs/superpowers/plans/2026-08-25-barcoder.md`
+
+## License
+
+MIT — see `LICENSE`.
+
+Everything Barcoder ships is MIT too: the bundled encoder (`@bwip-js/browser`
+and the BWIPP PostScript inside it) and the inlined Phosphor icons. Their
+notices are in `THIRD-PARTY-NOTICES.md`, which travels with any copy.

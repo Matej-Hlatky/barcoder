@@ -114,6 +114,9 @@ build without one. It is the text behind the (i) next to each label.
   Theme cross-fades run at 0.5s; focus and other direct feedback at 0.15s.
 - Icons are Phosphor (regular), inlined as markup in `src/icons.js`. Add a glyph
   by copying its `<path>` from `phosphor-icons/core`, not by adding a package.
+- Anything that reaches `dist/` needs an entry in `THIRD-PARTY-NOTICES.md`, with
+  the upstream licence text copied verbatim. Dev-only tooling stays out of that
+  file on purpose — it is never redistributed.
 - The payload field is `Menlo, Consolas, "DejaVu Sans Mono", ui-monospace,
   monospace`. Menlo leads because it is the one that slashes its zero by
   default; `ui-monospace` resolves to SF Mono, which does not. Neither SF Pro
